@@ -17,6 +17,7 @@ modExtra.panel.Home = function (config) {
 		}, {
 			xtype: 'modx-tabs',
 			defaults: {border: false, autoHeight: true},
+			bodyStyle: 'padding: 10px',
 			border: true,
 			hideMode: 'offsets',
 			items: [{
