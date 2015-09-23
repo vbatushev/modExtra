@@ -20,36 +20,49 @@ if ($object->xpdo) {
                 unset($schema);
             }
             foreach ($objects as $tmp) {
-                // Operate with tables
-                $manager->createObjectContainer($tmp);
-                $tableFields = array();
-                $c = $modx->prepare("SHOW COLUMNS IN {$modx->getTableName($tmp)}");
-                $c->execute();
-                while ($cl = $c->fetch(PDO::FETCH_ASSOC)) {
-                    $tableFields[] = $cl['Field'];
-                }
-                foreach ($modx->getFields($tmp) as $field => $v) {
-                    if (in_array($field, $tableFields)) {
-                        unset($tableFields[$field]);
-                        $manager->alterField($tmp, $field);
-                    } else {
-                        $manager->addField($tmp, $field);
-                    }
-                }
-                foreach ($tableFields as $field) {
-                    $manager->removeField($tmp, $field);
-                }
-                // Operate with indexes
-                if ($options[xPDOTransport::PACKAGE_ACTION] == xPDOTransport::ACTION_INSTALL) {
-                    foreach ($modx->getIndexMeta($tmp) as $name => $meta) {
-                        $manager->addIndex($tmp, $name);
-                    }
+                $table = $modx->getTableName($tmp);
+                $sql = "SHOW TABLES LIKE '".trim($table,'`')."'";
+                $stmt = $modx->prepare($sql);
+                if ($stmt->execute()) {
+                    $result = $stmt->fetch(PDO::FETCH_ASSOC);
                 } else {
+                    $modx->log(modX::LOG_LEVEL_ERROR, "Error executing sql query!");
+                    die();
+                }
+                if ($result) {
+                    $newTable = false;
+                } else {
+                    $newTable = true;
+                }
+                // If the table is just created
+                if ($newTable) {
+                    $manager->createObjectContainer($tmp);
+                } else {
+                    // If the table exists
+                    // 1. Operate with tables
+                    $tableFields = array();
+                    $c = $modx->prepare("SHOW COLUMNS IN {$modx->getTableName($tmp)}");
+                    $c->execute();
+                    while ($cl = $c->fetch(PDO::FETCH_ASSOC)) {
+                        $tableFields[$cl['Field']] = $cl['Field'];
+                    }
+                    foreach ($modx->getFields($tmp) as $field => $v) {
+                        if (in_array($field, $tableFields)) {
+                            unset($tableFields[$field]);
+                            $manager->alterField($tmp, $field);
+                        } else {
+                            $manager->addField($tmp, $field);
+                        }
+                    }
+                    foreach ($tableFields as $field) {
+                        $manager->removeField($tmp, $field);
+                    }
+                    // 2. Operate with indexes
                     $indexes = array();
                     $c = $modx->prepare("SHOW INDEX FROM {$modx->getTableName($tmp)}");
                     $c->execute();
                     while ($cl = $c->fetch(PDO::FETCH_ASSOC)) {
-                        $indexes[] = $cl['Key_name'];
+                        $indexes[$cl['Key_name']] = $cl['Key_name'];
                     }
                     foreach ($modx->getIndexMeta($tmp) as $name => $meta) {
                         if (in_array($name, $indexes)) {
