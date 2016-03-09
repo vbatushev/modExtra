@@ -1,20 +1,23 @@
 <?php
+
 if ($object->xpdo) {
     /** @var modX $modx */
     $modx =& $object->xpdo;
+
     switch ($options[xPDOTransport::PACKAGE_ACTION]) {
         case xPDOTransport::ACTION_INSTALL:
         case xPDOTransport::ACTION_UPGRADE:
             $modelPath = $modx->getOption('modextra_core_path', null, $modx->getOption('core_path') . 'components/modextra/') . 'model/';
             $modx->addPackage('modextra', $modelPath);
+
             $manager = $modx->getManager();
             $objects = array();
             $schemaFile = MODX_CORE_PATH . 'components/modextra/model/schema/modextra.mysql.schema.xml';
             if (is_file($schemaFile)) {
                 $schema = new SimpleXMLElement($schemaFile, 0, true);
                 if (isset($schema->object)) {
-                    foreach ($schema->object as $object) {
-                        $objects[] = (string)$object['class'];
+                    foreach ($schema->object as $obj) {
+                        $objects[] = (string)$obj['class'];
                     }
                 }
                 unset($schema);
@@ -23,16 +26,9 @@ if ($object->xpdo) {
                 $table = $modx->getTableName($tmp);
                 $sql = "SHOW TABLES LIKE '".trim($table,'`')."'";
                 $stmt = $modx->prepare($sql);
-                if ($stmt->execute()) {
-                    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-                } else {
-                    $modx->log(modX::LOG_LEVEL_ERROR, "Error executing sql query!");
-                    die();
-                }
-                if ($result) {
+                $newTable = true;
+                if ($stmt->execute() && $stmt->fetchAll()) {
                     $newTable = false;
-                } else {
-                    $newTable = true;
                 }
                 // If the table is just created
                 if ($newTable) {
@@ -77,19 +73,21 @@ if ($object->xpdo) {
                 }
             }
             break;
+
         case xPDOTransport::ACTION_UNINSTALL:
             // Remove tables if it's need
             /*
             $modelPath = $modx->getOption('modextra_core_path', null, $modx->getOption('core_path') . 'components/modextra/') . 'model/';
             $modx->addPackage('modextra', $modelPath);
+
             $manager = $modx->getManager();
             $objects = array();
             $schemaFile = MODX_CORE_PATH . 'components/modextra/model/schema/modextra.mysql.schema.xml';
             if (is_file($schemaFile)) {
                 $schema = new SimpleXMLElement($schemaFile, 0, true);
                 if (isset($schema->object)) {
-                    foreach ($schema->object as $object) {
-                        $objects[] = (string)$object['class'];
+                    foreach ($schema->object as $obj) {
+                        $objects[] = (string)$obj['class'];
                     }
                 }
                 unset($schema);
