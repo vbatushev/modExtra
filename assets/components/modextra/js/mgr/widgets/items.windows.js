@@ -42,6 +42,9 @@ Ext.extend(modExtra.window.CreateItem, MODx.Window, {
 			id: config.id + '-active',
 			checked: true,
 		}];
+	},
+	
+	loadDropZones: function() {
 	}
 
 });
@@ -95,6 +98,9 @@ Ext.extend(modExtra.window.UpdateItem, MODx.Window, {
 			name: 'active',
 			id: config.id + '-active',
 		}];
+	},
+	
+	loadDropZones: function() {
 	}
 
 });
