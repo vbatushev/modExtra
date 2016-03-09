@@ -56,4 +56,5 @@ $BUILD_RESOLVERS = array(
 	'chunks',
 	//'demo',
 	//'setup',
+	'office',
 );
