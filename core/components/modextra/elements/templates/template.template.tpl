@@ -1,1 +1,1 @@
-[[*content]]
+{include 'file:modextra/templates/product.tpl'}
